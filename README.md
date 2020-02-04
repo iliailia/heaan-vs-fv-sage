@@ -1,6 +1,6 @@
 # HEAAN and FV in SageMath
 The SageMath implementaiton of two homomorphic encryption schemes: 
-- [HEAAN](https://eprint.iacr.org/2016/421.pdf):
+- HEAAN:
   - `HEAAN`: the original version from [ePrint 2016/421](https://eprint.iacr.org/2016/421.pdf) that uses sparse secret keys and the "special-modulus" technique for key switching;
   - `HEAAN_FV_KS`: a variant without sparse secret keys and with the "bit-decomposition" key switching method (as in FV).
 - `FV`: FV with polynomial plaintext modulus as in [ePrint 2018/785](https://eprint.iacr.org/2018/785.pdf).
