@@ -22,6 +22,12 @@ qs = {
     'HEAAN_FV_KS': [2^54, 2^109, 2^218, 2^438, 2^881]   
 };
 
+#discrete Gaussian distribution
+#standard deviation of a gaussian distribution
+st_dev = 3.19;
+#discrete gaussian sampler
+d_gauss = DiscreteGaussianDistributionIntegerSampler(st_dev);
+
 def inf_norm(poly):
     '''Infinity norm of a polynomial
     Parameters:
@@ -204,7 +210,7 @@ def get_min_b(n, slots, bit_bound):
             min_slots = alt_slots;
         alt_slots*=2;
 
-    print "Use {min_slots} slots with b={min_b}".format(min_slots=min_slots, min_b=min_b);
+    print("Use {min_slots} slots with b={min_b}".format(min_slots=min_slots, min_b=min_b));
     return min_b;
 
 ##############PARAMS#######################
@@ -238,15 +244,15 @@ class Params:
         #number of decomposition components
         self.l = floor(log(self.q, self.w));
         #standard deviation of a gaussian distribution
-        self.sigma = 3.19;
+        #self.sigma = 3.19;
         #discrete gaussian sampler
-        self.D = DiscreteGaussianDistributionIntegerSampler(self.sigma)
+        #self.D = DiscreteGaussianDistributionIntegerSampler(self.sigma)
         #indicates whether the plaintext parameters are initialized
         self.plain_init = False;
 
     def __str__(self):
         '''Returns a description of the class'''
-        return "scheme: {stype}, n: {n}, q: {q}, w: {w}, l: {l}, st.dev: {sigma}".format(stype=self.type, n=self.n, q=self.q, w=self.w, l=self.l, sigma=self.sigma);
+        return "scheme: {stype}, n: {n}, q: {q}, w: {w}, l: {l}, st.dev: {sigma}".format(stype=self.type, n=self.n, q=self.q, w=self.w, l=self.l, sigma=st_dev);
 
     def __eq__(self, params):
         '''Equality test
@@ -257,7 +263,7 @@ class Params:
         if not isinstance(params, Params):
             raise TypeError("Invalid parameters");
 
-        if (self.type == params.type) and (self.n == params.n) and (self.q == params.q) and (self.w == params.w) and (self.sigma == params.sigma):
+        if (self.type == params.type) and (self.n == params.n) and (self.q == params.q) and (self.w == params.w):
             return True;
 
         return False;
@@ -351,8 +357,6 @@ class Params:
             self.q = q;
             #number of decomposition components
             self.l = floor(log(self.q, self.w));
-            #discrete gaussian sampler
-            self.D = DiscreteGaussianDistributionIntegerSampler(self.sigma);
             #indicates whether the plaintext parameters are initialized
             self.plain_init = False;
             if self.type == 'FV':
@@ -611,7 +615,7 @@ class RPoly(CyclInt):
             raise ValueError("Plaintext space must be initialized");
 
         if self.params.type == 'HEAAN' or self.params.type == 'HEAAN_FV_KS':
-            print "There is no plaintext modulus in HEAAN";
+            print("There is no plaintext modulus in HEAAN");
         elif self.params.type == 'FV':
             self.mod_poly(self.params.g);
 
@@ -697,7 +701,7 @@ class RandomGen:
 
         coefs = []
         for i in range(self.params.n):
-            r = self.params.D();
+            r = d_gauss();
             coefs += [r];
         epoly = R(coefs);
         e = RPoly(self.params, epoly);
@@ -917,8 +921,8 @@ class Scheme:
             b.modq();
             self.rlk = (b,a);
 
-            print "Scheme q:", log(self.params.q, 2);
-            print "Relin Q:", log(self.rlk[0].params.q, 2);
+            print("Scheme q:", log(self.params.q, 2));
+            print("Relin Q:", log(self.rlk[0].params.q, 2));
         elif self.params.type == 'FV' or self.params.type == 'HEAAN_FV_KS':
             self.rlk = [];
             ss = self.sk * self.sk;
@@ -1190,7 +1194,7 @@ class Scheme:
         if res.params.type == 'HEAAN' or res.params.type == 'HEAAN_FV_KS':
             res = self.rescale(res);
 
-        print "Log scale after mul: ", log(res.scale,2);
+        print("Log scale after mul: ", log(res.scale,2));
 
         return res;
 
@@ -1222,9 +1226,9 @@ class Scheme:
         c1.scale_round(self.encdr.scale);
         c1.params.set_mod(new_q);
 
-        print "Old modulus: ", log(ct.params.q, 2);
+        print("Old modulus: ", log(ct.params.q, 2));
         new_params = copy.deepcopy(c1.params);
-        print "New modulus: ", log(new_params.q, 2);
+        print("New modulus: ", log(new_params.q, 2));
 
         res = Ctxt([c0,c1], new_params, ct.scale/self.encdr.scale);
 
@@ -1318,7 +1322,7 @@ class Scheme:
         if len(coefs) == 0:
             return True;
         max_coef = max([abs(coef) for coef in coefs]);
-        print "Max plaintext coef (log): ", log(max_coef, 2).n();
+        print("Max plaintext coef (log): ", log(max_coef, 2).n());
 
         bound = 0;
         if self.params.type == 'FV':
@@ -1430,7 +1434,7 @@ class Scheme:
         if not (new_q in ZZ):
             raise ValueError("New ciphertext modulus must be an integer");
 
-        print "Old modulus: ", log(ct.params.q, 2);
+        print("Old modulus: ", log(ct.params.q, 2));
 
         c0 = copy.deepcopy(ct.c[0]);
         c0.params.set_mod(new_q);
@@ -1442,7 +1446,7 @@ class Scheme:
 
         res = Ctxt([c0,c1], c1.params, ct.scale);
 
-        print "New modulus: ", log(res.params.q, 2);
+        print("New modulus: ", log(res.params.q, 2));
 
         return res;
 
@@ -1463,12 +1467,12 @@ class Scheme:
             N_b = self.params.n;
             if self.params.b == 2:
                 N_b /= 2;
-            res = (self.params.b + 1) / q * (sqrt(3 * self.params.n) / 2 * (self.params.b + 1) * N_b + 2 * self.params.sigma * self.params.n * sqrt(12 + 9 / self.params.n));
+            res = (self.params.b + 1) / q * (sqrt(3 * self.params.n) / 2 * (self.params.b + 1) * N_b + 2 * st_dev * self.params.n * sqrt(12 + 9 / self.params.n));
         elif self.params.type == 'HEAAN_FV_KS':
-            res = 8 * sqrt(2) * self.params.sigma * self.params.n + 6 * self.params.sigma * sqrt(self.params.n) + 16 * self.params.sigma*self.params.n;
+            res = 8 * sqrt(2) * st_dev * self.params.n + 6 * st_dev * sqrt(self.params.n) + 16 * st_dev*self.params.n;
             res += coef_bound;
         elif self.params.type == 'HEAAN':
-            res = 8 * sqrt(2) * self.params.sigma * self.params.n + 6 * self.params.sigma * sqrt(self.params.n) + 16 * self.params.sigma*sqrt(self.h * self.params.n);
+            res = 8 * sqrt(2) * st_dev * self.params.n + 6 * st_dev * sqrt(self.params.n) + 16 * st_dev*sqrt(self.h * self.params.n);
             res += coef_bound;
 
         return res;
@@ -1525,17 +1529,17 @@ class Scheme:
         res = 0;
 
         if self.params.type == 'HEAAN':
-            bound_ks = 8 * self.params.sigma * self.params.n / sqrt(3);
+            bound_ks = 8 * st_dev * self.params.n / sqrt(3);
             bound_mul = q^(-1) * q_level * bound_ks;
             res = noise1 * noise2 + bound_mul;
             res = self.rescale_noise(res);
         elif self.params.type == 'HEAAN_FV_KS':
-            bound_ks = self.params.sigma * self.params.n * self.params.w * sqrt(3*(self.params.l + 1));
+            bound_ks = st_dev * self.params.n * self.params.w * sqrt(3*(self.params.l + 1));
             bound_mul = bound_ks;
             res = noise1 * noise2 + bound_mul;
             res = self.rescale_noise(res);
         elif self.params.type == 'FV':
-            res = (self.params.b + 1) * sqrt(3 * self.params.n + 2 * self.params.n^2) * (noise1 + noise2) + 3 * noise1 * noise2 + (self.params.b + 1) / q * (sqrt(3 * self.params.n + 2 * self.params.n^2 + 4 * self.params.n^3 / 3) + self.params.sigma * self.params.n * self.params.w * sqrt(3*(self.params.l + 1))); 
+            res = (self.params.b + 1) * sqrt(3 * self.params.n + 2 * self.params.n^2) * (noise1 + noise2) + 3 * noise1 * noise2 + (self.params.b + 1) / q * (sqrt(3 * self.params.n + 2 * self.params.n^2 + 4 * self.params.n^3 / 3) + st_dev * self.params.n * self.params.w * sqrt(3*(self.params.l + 1))); 
         else:
             raise ValueError("Noise estimation after multiplication for this scheme is not supported.");
 
@@ -1662,18 +1666,18 @@ class Scheme:
         res = 0
 
         if self.params.type == 'HEAAN':
-            init_noise_bound = 8 * sqrt(2) * self.params.sigma * self.params.n + 6 * self.params.sigma * sqrt(self.params.n) + 16 * self.params.sigma * sqrt(self.h * self.params.n); 
+            init_noise_bound = 8 * sqrt(2) * st_dev * self.params.n + 6 * st_dev * sqrt(self.params.n) + 16 * st_dev * sqrt(self.h * self.params.n); 
             res = self.params.m / 2 * prec * (1 + 2 * init_noise_bound);
             res = 2^ceil(log(res,2));
-            print "log of the HEAAN encoding scale needed: ", log(res, 2).n();
+            print("log of the HEAAN encoding scale needed: ", log(res, 2).n());
         elif self.params.type == 'HEAAN_FV_KS':
-            init_noise_bound = 8 * sqrt(2) * self.params.sigma * self.params.n + 6 * self.params.sigma * sqrt(self.params.n) + 16 * self.params.sigma*self.params.n;
+            init_noise_bound = 8 * sqrt(2) * st_dev * self.params.n + 6 * st_dev * sqrt(self.params.n) + 16 * st_dev*self.params.n;
             res = self.params.m / 2 * prec * (1 + 2 * init_noise_bound);
             res = 2^ceil(log(res,2));
-            print "log of the HEAAN_FV_KS encoding scale needed: ", log(res, 2).n();
+            print("log of the HEAAN_FV_KS encoding scale needed: ", log(res, 2).n());
         elif self.params.type == 'FV':
             res = self.params.m / 2 * prec;
-            print "log of the FV encoding scale needed: ", log(res, 2).n();
+            print("log of the FV encoding scale needed: ", log(res, 2).n());
 
         return res;
 
@@ -1691,7 +1695,7 @@ class Scheme:
         right = int(log(self.params.q, 2));
 
         if not self.is_q_valid_for_poly_eval(2^right, coefs, inp_bound):
-            print "These encryption parameters do not support 128-bits of security."
+            print("These encryption parameters do not support 128-bits of security.");
             return 0;
 
         log_q = right;
@@ -1704,7 +1708,7 @@ class Scheme:
             else:
                 left = middle + 1;
 
-        print "log q: ", log_q;
+        print("log q: ", log_q);
 
         return 2^log_q;
 
@@ -1726,14 +1730,14 @@ class Scheme:
         if self.params.type == 'FV':
             if not self.is_decrypted_to(ct, pt):
                 decrpt_ok = False;
-                print "Decryption error";
+                print("Decryption error");
             if not self.is_encodable(cycl_int):
                 decd_ok = False;
-                print "Decoding error";
+                print("Decoding error");
         elif self.params.type == 'HEAAN' or self.params.type == "HEAAN_FV_KS":
             if not self.is_encodable(pt):
                 decd_ok = False;
-                print "Decoding error";
+                print("Decoding error");
 
         return (decrpt_ok and decd_ok);
 
@@ -1761,7 +1765,7 @@ class Scheme:
         dec_vec = self.decrypt_vector(inp_ct);
         approx_err = (vector(inp_vec)-vector(dec_vec)).norm(Infinity);
 
-        print "Initial approx. error: ", log(approx_err.n(),2);
+        print("Initial approx. error: ", log(approx_err.n(),2));
 
         deg = len(coefs)-1;
         depth = ceil(log(deg,2));
@@ -1784,7 +1788,7 @@ class Scheme:
 
         i = 1;
         while (2^i <= deg):
-            print "Computing x^{0}".format(str(2^i));
+            print("Computing x^{0}".format(str(2^i)));
 
             x_pwr_ct[i] = self.mul(x_pwr_ct[i-1], x_pwr_ct[i-1]);
 
@@ -1806,7 +1810,7 @@ class Scheme:
             const_cycl = self.encdr.encode_vector([const for _ in range(slots)]);
             const_pt = self.encode_cycl_int(const_cycl, self.params);
 
-            print "Computing {0} * x^{1}".format(str(const), str(i));
+            print("Computing {0} * x^{1}".format(str(const), str(i)));
 
             tmp_c0 = const_pt;
             if self.params.type == 'FV':
@@ -1860,7 +1864,7 @@ class Scheme:
             else:
                 final_scale_pwr = deg + 1;
 
-            print "Final scale power: ", final_scale_pwr;
+            print("Final scale power: ", final_scale_pwr);
 
             # Align the encoding scale
             if self.params.type == 'FV' and final_scale_pwr >= (i+2):
@@ -1874,7 +1878,7 @@ class Scheme:
                 tmp_pt = tmp_pt * tmp_one_pt;
                 tmp_pt.modt();
 
-            print "Computing the {0}th partial sum...".format(str(i));
+            print("Computing the {0}th partial sum...".format(str(i)));
 
             if res_ct == 0:
                 res_ct = tmp_ct;
@@ -1893,11 +1897,11 @@ class Scheme:
         res_vec_dec = self.decrypt_vector(res_ct);
 
         if res_pt.poly == R(0):
-            print "Zero plaintext";
+            print("Zero plaintext");
         else:
-            print "Plaintext inf. norm:", log(res_pt.poly.norm(Infinity),2).n();
+            print("Plaintext inf. norm:", log(res_pt.poly.norm(Infinity),2).n());
 
-        print "Ciphertext size is {0} Kb".format(str(log(self.params.q, 2) * self.params.n * 2 / 8.0 / 1024.0));
+        print("Ciphertext size is {0} Kb".format(str(log(self.params.q, 2) * self.params.n * 2 / 8.0 / 1024.0)));
 
         return (res_ct, res_vec, res_vec_dec);
 
@@ -1915,7 +1919,7 @@ def sine_test(slots, bound, enc_delta, scheme_type, params_index, rounds, b=None
         b (int): constant term of the FV plaintext modulus (needed when scheme_type = 'FV')
     '''
 
-    print "Computing the sine function...";
+    print("Computing the sine function...");
 
     tailor_deg = 9;
     coefs = [0 for _ in range(tailor_deg + 1)];
@@ -1929,7 +1933,7 @@ def sine_test(slots, bound, enc_delta, scheme_type, params_index, rounds, b=None
     scheme.set_encoder(encdr);
 
     q = scheme.min_q_for_poly_eval(coefs, bound);
-    print "Minimal ciphertext modulus is ", q;
+    print("Minimal ciphertext modulus is ", q);
     if q == 0:
         raise ValueError("This parameter set does not support evaluation");
     par.set_mod(q);
@@ -1944,32 +1948,32 @@ def sine_test(slots, bound, enc_delta, scheme_type, params_index, rounds, b=None
 
         res = scheme.poly_eval_test(inp_vec, bound, coefs);
         if res == 0:
-            print "Computation failed";
+            print("Computation failed");
 
         res_ct = res[0];
         res_vec = res[1];
         res_vec_dec = res[2]; 
 
         approx_err = (vector([real(res_vec_dec[i]) for i in range(len(res_vec_dec))])-vector(res_vec)).norm(Infinity);
-        print "Error between real approximation and encrypted values (log)", log(approx_err,2).n();
+        print("Error between real approximation and encrypted values (log)", log(approx_err,2).n());
 
         approx_err = (vector([real(res_vec_dec[i]) for i in range(len(res_vec_dec))])-vector([sin(inp_vec[i]) for i in range(len(inp_vec))])).norm(Infinity);
         max_approx_err = max(max_approx_err, log(approx_err,2).n());
         min_approx_err = min(min_approx_err, log(approx_err,2).n());
         if max_approx_err > -7:
-            print "Small output precision. Increase parameters."
+            print("Small output precision. Increase parameters.");
             break;
 
-        print "Error between the sine and encrypted values (log)", log(approx_err,2).n();
+        print("Error between the sine and encrypted values (log)", log(approx_err,2).n());
 
         approx_err = (vector([real(res_vec[i]) for i in range(len(res_vec))])-vector([sin(inp_vec[i]) for i in range(len(inp_vec))])).norm(Infinity);
 
-        print "Error between the sine and its approximation (log)", log(approx_err,2).n();
-        print "Round ", rnd, "has finished";
-        print "Max. error so far:", max_approx_err;
+        print("Error between the sine and its approximation (log)", log(approx_err,2).n());
+        print("Round ", rnd, "has finished");
+        print("Max. error so far:", max_approx_err);
 
-    print "After ", rounds, " experiments the maximal approximation error is ", max_approx_err;
-    print "and the minimal approximation is ", min_approx_err;
+    print("After ", rounds, " experiments the maximal approximation error is ", max_approx_err);
+    print("and the minimal approximation is ", min_approx_err);
  
 
 def logist(x):
@@ -1998,7 +2002,7 @@ def logist_test(slots, bound, enc_delta, scheme_type, params_index, rounds, b=No
         b (int): constant term of the FV plaintext modulus (needed when scheme_type = 'FV')
     '''
 
-    print "Computing the logistic function...";
+    print("Computing the logistic function...");
 
     coefs = [1/2, 1/4, 0, -1/48, 0, 1/480, 0, -17/80640, 0, 31/1451520];
 
@@ -2009,7 +2013,7 @@ def logist_test(slots, bound, enc_delta, scheme_type, params_index, rounds, b=No
     scheme.set_encoder(encdr);
 
     q = scheme.min_q_for_poly_eval(coefs, bound);
-    print "Minimal ciphertext modulus is ", q;
+    print("Minimal ciphertext modulus is ", q);
     if q == 0:
         raise ValueError("This parameter set does not support evaluation");
     par.set_mod(q);
@@ -2024,33 +2028,33 @@ def logist_test(slots, bound, enc_delta, scheme_type, params_index, rounds, b=No
 
         res = scheme.poly_eval_test(inp_vec, bound, coefs);
         if res == 0:
-            print "Computation failed";
+            print("Computation failed");
 
         res_ct = res[0];
         res_vec = res[1];
         res_vec_dec = res[2]; 
 
         approx_err = (vector([real(res_vec_dec[i]) for i in range(len(res_vec_dec))])-vector(res_vec)).norm(Infinity);
-        print "Error between real approximation and encrypted values (log)", log(approx_err,2).n();
+        print("Error between real approximation and encrypted values (log)", log(approx_err,2).n());
 
         approx_err = (vector([real(res_vec_dec[i]) for i in range(len(res_vec_dec))])-vector([logist(inp_vec[i]) for i in range(len(inp_vec))])).norm(Infinity);
         max_approx_err = max(max_approx_err, log(approx_err,2).n());
         min_approx_err = min(min_approx_err, log(approx_err,2).n());
         if max_approx_err > -7:
-            print "Small output precision. Increase parameters."
-            print "Input: ", inp_vec;
+            print("Small output precision. Increase parameters.");
+            print("Input: ", inp_vec);
             break;
 
-        print "Error between the logistic regression and encrypted values (log)", log(approx_err,2).n();
+        print("Error between the logistic regression and encrypted values (log)", log(approx_err,2).n());
 
         approx_err = (vector([real(res_vec[i]) for i in range(len(res_vec))])-vector([logist(inp_vec[i]) for i in range(len(inp_vec))])).norm(Infinity);
 
-        print "Error between the logistic regression and its approximation (log)", log(approx_err,2).n();
-        print "Round ", rnd, "has finished";
-        print "Max. error so far:", max_approx_err;
+        print("Error between the logistic regression and its approximation (log)", log(approx_err,2).n());
+        print("Round ", rnd, "has finished");
+        print("Max. error so far:", max_approx_err);
 
-    print "After ", rounds, " experiments the maximal approximation error is ", max_approx_err;
-    print "and the minimal approximation is ", min_approx_err;
+    print("After ", rounds, " experiments the maximal approximation error is ", max_approx_err);
+    print("and the minimal approximation is ", min_approx_err);
 
 
 def power_test(power, slots, bound, enc_delta, scheme_type, params_index, rounds, b=None):
@@ -2067,7 +2071,7 @@ def power_test(power, slots, bound, enc_delta, scheme_type, params_index, rounds
         b (int): constant term of the FV plaintext modulus (needed when scheme_type = 'FV')
     '''
 
-    print "Computing the power function...";
+    print("Computing the power function...");
 
     coefs = [0 for _ in range(power+1)];
     coefs[power] = 1.0;
@@ -2079,7 +2083,7 @@ def power_test(power, slots, bound, enc_delta, scheme_type, params_index, rounds
     scheme.set_encoder(encdr);
 
     q = scheme.min_q_for_poly_eval(coefs, bound);
-    print "Minimal ciphertext modulus is ", q;
+    print("Minimal ciphertext modulus is ", q);
     if q == 0:
         raise ValueError("This parameter set does not support evaluation");
     par.set_mod(q);
@@ -2094,33 +2098,33 @@ def power_test(power, slots, bound, enc_delta, scheme_type, params_index, rounds
 
         res = scheme.poly_eval_test(inp_vec, bound, coefs);
         if res == 0:
-            print "Computation failed";
+            print("Computation failed");
 
         res_ct = res[0];
         res_vec = res[1];
         res_vec_dec = res[2]; 
 
         approx_err = (vector([real(res_vec_dec[i]) for i in range(len(res_vec_dec))])-vector(res_vec)).norm(Infinity);
-        print "Error between real approximation and encrypted values (log)", log(approx_err,2).n();
+        print("Error between real approximation and encrypted values (log)", log(approx_err,2).n());
 
         approx_err = (vector([real(res_vec_dec[i]) for i in range(len(res_vec_dec))])-vector([(inp_vec[i])^power for i in range(len(inp_vec))])).norm(Infinity);
         max_approx_err = max(max_approx_err, log(approx_err,2).n());
         min_approx_err = min(min_approx_err, log(approx_err,2).n());
         if max_approx_err > -7:
-            print "Small output precision. Increase parameters."
-            print "Input: ", inp_vec;
+            print("Small output precision. Increase parameters.");
+            print("Input: ", inp_vec);
             break;
 
-        print "Error between the power function and encrypted values (log)", log(approx_err,2).n();
+        print("Error between the power function and encrypted values (log)", log(approx_err,2).n());
 
         approx_err = (vector([real(res_vec[i]) for i in range(len(res_vec))])-vector([(inp_vec[i])^power for i in range(len(inp_vec))])).norm(Infinity);
 
-        print "Error between the power function and its approximation (log)", log(approx_err,2).n();
-        print "Round ", rnd, "has finished";
-        print "Max. error so far:", max_approx_err;
+        print("Error between the power function and its approximation (log)", log(approx_err,2).n());
+        print("Round ", rnd, "has finished");
+        print("Max. error so far:", max_approx_err);
 
-    print "After ", rounds, " experiments the maximal approximation error is ", max_approx_err;
-    print "and the minimal approximation is ", min_approx_err;
+    print("After ", rounds, " experiments the maximal approximation error is ", max_approx_err);
+    print("and the minimal approximation is ", min_approx_err);
 
 
 def exp_test(slots, bound, enc_delta, scheme_type, params_index, rounds, b=None):
@@ -2136,7 +2140,7 @@ def exp_test(slots, bound, enc_delta, scheme_type, params_index, rounds, b=None)
         b (int): constant term of the FV plaintext modulus (needed when scheme_type = 'FV')
     '''
 
-    print "Computing the power function...";
+    print("Computing the power function...");
 
     coefs = [1.0, 1.0, 1.0/2.0, 1.0/6.0, 1.0/24.0, 1.0/120.0, 1.0/720.0, 1.0/5040.0, 1.0/40320.0];
 
@@ -2147,7 +2151,7 @@ def exp_test(slots, bound, enc_delta, scheme_type, params_index, rounds, b=None)
     scheme.set_encoder(encdr);
 
     q = scheme.min_q_for_poly_eval(coefs, bound);
-    print "Minimal ciphertext modulus is ", q;
+    print("Minimal ciphertext modulus is ", q);
     if q == 0:
         raise ValueError("This parameter set does not support evaluation");
     par.set_mod(q);
@@ -2162,31 +2166,31 @@ def exp_test(slots, bound, enc_delta, scheme_type, params_index, rounds, b=None)
 
         res = scheme.poly_eval_test(inp_vec, bound, coefs);
         if res == 0:
-            print "Computation failed";
+            print("Computation failed");
 
         res_ct = res[0];
         res_vec = res[1];
         res_vec_dec = res[2]; 
 
         approx_err = (vector([real(res_vec_dec[i]) for i in range(len(res_vec_dec))])-vector(res_vec)).norm(Infinity);
-        print "Error between real approximation and encrypted values (log)", log(approx_err,2).n();
+        print("Error between real approximation and encrypted values (log)", log(approx_err,2).n());
 
         approx_err = (vector([real(res_vec_dec[i]) for i in range(len(res_vec_dec))])-vector([exp(inp_vec[i]) for i in range(len(inp_vec))])).norm(Infinity);
         max_approx_err = max(max_approx_err, log(approx_err,2).n());
         min_approx_err = min(min_approx_err, log(approx_err,2).n());
         if max_approx_err > -7:
-            print "Small output precision. Increase parameters."
-            print "Input: ", inp_vec;
+            print("Small output precision. Increase parameters.");
+            print("Input: ", inp_vec);
             break;
 
-        print "Error between the power function and encrypted values (log)", log(approx_err,2).n();
+        print("Error between the power function and encrypted values (log)", log(approx_err,2).n());
 
         approx_err = (vector([real(res_vec[i]) for i in range(len(res_vec))])-vector([exp(inp_vec[i]) for i in range(len(inp_vec))])).norm(Infinity);
 
-        print "Error between the power function and its approximation (log)", log(approx_err,2).n();
-        print "Round ", rnd, "has finished";
-        print "Max. error so far:", max_approx_err;
+        print("Error between the power function and its approximation (log)", log(approx_err,2).n());
+        print("Round ", rnd, "has finished");
+        print("Max. error so far:", max_approx_err);
 
-    print "After ", rounds, " experiments the maximal approximation error is ", max_approx_err;
-    print "and the minimal approximation is ", min_approx_err;
+    print("After ", rounds, " experiments the maximal approximation error is ", max_approx_err);
+    print("and the minimal approximation is ", min_approx_err);
 
