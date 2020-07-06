@@ -10,5 +10,3 @@ This code is used in the paper ["When HEAAN Meets FV: a New Somewhat Homomorphic
 - the sine (see `sine_test`),
 - the standard logistic function (see `logist_test`),
 - power functions (see `power_test`).
-
-**WARNING**: the current version of the code does not support SageMath 9.0 or higher!
